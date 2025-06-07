@@ -4,14 +4,11 @@ import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 import os
 import sys
-from __init__ import *
-sys.path.append(source_code_path)
-from _workplace.library.junLib import *
-from _workplace.library.junLib_xml import *
-from _workplace.library.junLib_json import write_to_json
-import xml.etree.ElementTree as ET
 from collections import Counter
 import json
+from . import junLib
+from . import junLib_xml
+from . import junLib_json
 
 class XmlToJsonConverter:
     def __init__(self, xml_file_path):

@@ -1,7 +1,7 @@
 # requirements.txt
-PyQt5
-moviepy
-pandas
+PyQt5>=5.15.0
+moviepy>=1.0.3
+pandas>=1.3.0
 tqdm
-watchdog
+watchdog>=2.1.0
 distro

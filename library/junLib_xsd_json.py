@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
-from __init__ import source_code_path
-sys.path.append(source_code_path)
-from _workplace.library.junLib import *
-from _workplace.library.junLib_xml_class_json import *
 import xml.etree.ElementTree as ET
+from . import junLib
+from . import junLib_xml_class_json
+from xml.dom import minidom
 
 class JsonToXsdConverter:
     def __init__(self, json_data, root_name=None):
@@ -75,6 +74,7 @@ class JsonToXsdConverter:
         # XSD 파일로 저장 (indent 옵션으로 들여쓰기)
         with open(file_path, 'w', encoding='utf-8') as f:
             f.write(result)
+
 def run():
     target_xml_file_path = strip_quotes(input('Enter target xml file : '))
     obj = XmlToJsonConverter(target_xml_file_path)

@@ -1,38 +1,31 @@
-from setuptools import setup, find_packages
-import os
+from setuptools import setup
+import tomli
+
+# pyproject.toml 파일 읽기
+with open("pyproject.toml", "rb") as f:
+    pyproject = tomli.load(f)
 
 # README.md 파일 읽기
 with open("README.md", encoding="utf-8") as f:
     long_description = f.read()
 
+# pyproject.toml에서 프로젝트 정보 가져오기
+project = pyproject["project"]
+
 setup(
-    name="junLib",
-    version="0.1.1",
-    description="파이썬 유틸리티 라이브러리",
+    name=project["name"],
+    version=project["version"],
+    description=project["description"],
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="jslee7518",
-    author_email="jslee7518@gmail.com",
-    url="https://github.com/jslee7518/junLib",
-    packages=find_packages(),
-    package_dir={"junLib": "library"},
-    install_requires=[
-        "PyQt5",
-        "moviepy",
-        "pandas",
-        "tqdm",
-        "watchdog",
-        "distro",
-    ],
-    python_requires=">=3.8",
+    author=project["authors"][0]["name"],
+    author_email=project["authors"][0]["email"],
+    python_requires=project["requires-python"],
+    install_requires=project["dependencies"],
+    packages=["library"],
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
 )

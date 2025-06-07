@@ -1,8 +1,11 @@
+"""
+XML 파일 처리를 위한 유틸리티 함수들
+"""
 # -*- coding: utf-8 -*-
 import os
 import sys
 import xml.etree.ElementTree as ET
-from . import junLib
+from .. import junLib
 
 def write_xsd_to_file(xsd_string, file_name):
     try:

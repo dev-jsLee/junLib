@@ -1,16 +1,35 @@
-# -*- coding: utf-8 -*-
-import os
-import sys
-current_script_path = os.path.abspath(__file__)
-current_directory = os.path.dirname(current_script_path)
-_workplace_folder_path = current_directory
+"""
+junLib library package
+"""
 
-while(True):
-    if os.path.basename(_workplace_folder_path) == '_workplace':
-        break
-    else:
-        _workplace_folder_path = os.path.dirname(_workplace_folder_path)
-        continue
-source_code_path = os.path.dirname(_workplace_folder_path)
-_gitlab_path = os.path.dirname(source_code_path)
-root_folder_path = os.path.dirname(_gitlab_path)
+# 모듈들을 직접 임포트하여 패키지 레벨에서 사용할 수 있게 함
+from . import junLib
+from . import junLib_csv
+from . import junLib_csv_class
+from . import junLib_datetime
+from . import junLib_json
+from . import junLib_xml
+from . import junLib_xml_class
+from . import junLib_xml_class_json
+from . import junLib_xsd
+from . import junLib_xsd_json
+from . import junLib_video
+from . import junLib_video_player
+from . import junLib_watchdog
+
+# 외부에 노출할 모듈 목록
+__all__ = [
+    'junLib',
+    'junLib_csv',
+    'junLib_csv_class',
+    'junLib_datetime',
+    'junLib_json',
+    'junLib_xml',
+    'junLib_xml_class',
+    'junLib_xml_class_json',
+    'junLib_xsd',
+    'junLib_xsd_json',
+    'junLib_video',
+    'junLib_video_player',
+    'junLib_watchdog'
+]

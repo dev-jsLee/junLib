@@ -1,11 +1,9 @@
 import os
 import sys
-from __init__ import *
-sys.path.append(source_code_path)
-from _workplace.library.junLib import *
-from _workplace.library.junLib_importlib import auto_import
-auto_import('watchdog', 'watchdog')
 import time
+from . import junLib
+
+# watchdog 임포트
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 

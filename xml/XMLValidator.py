@@ -1,9 +1,12 @@
+"""
+XML 파일 검증을 위한 클래스들
+"""
 import xml
 import xml.etree.ElementTree as ET
 import xml.dom.minidom as minidom
 import os
 import sys
-from . import junLib
+from .. import junLib
 
 class XMLController:
     def __init__(self, xml_file=None):

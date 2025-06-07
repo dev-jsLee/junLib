@@ -1,9 +1,12 @@
+"""
+오디오 파일 처리를 위한 핸들러 클래스
+"""
 import os
 import sys
 import subprocess
 import json
 import time
-from . import junLib
+from .. import junLib
 from . import junLib_csv
 from . import junLib_xml
 from . import junLib_xml_class
@@ -17,46 +20,95 @@ from PyQt5.QtCore import QTimer
 ffmpeg_folder_path = os.path.join(os.path.dirname(__file__), '_resource', 'ffmpeg-n5.1-latest-win64-lgpl-5.1', 'bin')
 ffplay_path = os.path.join(ffmpeg_folder_path, 'ffplay')
 ffmpeg_path = os.path.join(ffmpeg_folder_path, 'ffmpeg')
-emt = {
-    '01':{
-        'kor':'평범',
-        'eng':'neutral',
+
+# 감정 태그 정의
+EMOTION_TAGS = {
+    '01': {
+        'kor': '평범',
+        'eng': 'neutral',
         'code': 1
     },
-    '02':{
-        'kor':'놀람',
-        'eng':'surprise',
+    '02': {
+        'kor': '놀람',
+        'eng': 'surprise',
         'code': 2
     },
-    '03':{
-        'kor':'슬픔',
-        'eng':'sadness',
+    '03': {
+        'kor': '슬픔',
+        'eng': 'sadness',
         'code': 3
     },
-    '04':{
-        'kor':'행복함',
-        'eng':'happiness',
+    '04': {
+        'kor': '행복함',
+        'eng': 'happiness',
         'code': 4
     },
-    '05':{
-        'kor':'두려움',
-        'eng':'fear',
+    '05': {
+        'kor': '두려움',
+        'eng': 'fear',
         'code': 5
     },
-    '06':{
-        'kor':'역겨움',
-        'eng':'disgust',
+    '06': {
+        'kor': '역겨움',
+        'eng': 'disgust',
         'code': 6
     },
-    '07':{
-        'kor':'화남',
-        'eng':'angry',
+    '07': {
+        'kor': '화남',
+        'eng': 'angry',
         'code': 7
     }
 }
 
+class AudioHandler:
+    """오디오 파일을 처리하기 위한 핸들러 클래스"""
+    
+    def __init__(self, audio_path='') -> None:
+        """
+        AudioHandler 초기화
+        
+        Args:
+            audio_path (str, optional): 오디오 파일 경로. 기본값은 빈 문자열.
+        """
+        if audio_path:
+            self.set_audio(audio_path)
+
+    def set_audio(self, audio_path=''):
+        """
+        오디오 파일 경로 설정
+        
+        Args:
+            audio_path (str, optional): 오디오 파일 경로. 기본값은 빈 문자열.
+            
+        Returns:
+            AudioHandler: 체이닝을 위한 self 반환
+        """
+        self.audio_path = audio_path or junLib.strip_quotes(input("Enter audio file path : "))
+        return self
+
+    def get_duration(self):
+        """
+        오디오 파일의 재생 시간을 초 단위로 반환
+        
+        Returns:
+            float: 오디오 재생 시간(초)
+        """
+        clip = AudioFileClip(self.audio_path)
+        self.duration = float(clip.duration)
+        clip.close()
+        return self.duration
+
 class EmotionTaggingApp(QMainWindow):
+    """감정 태깅을 위한 GUI 애플리케이션"""
+    
     def __init__(self, worker_code, yymmdd_folder_path=None):
+        """
+        EmotionTaggingApp 초기화
+        
+        Args:
+            worker_code (str): 작업자 코드
+            yymmdd_folder_path (str, optional): 작업할 폴더 경로. 기본값은 None.
+        """
         super().__init__()
         self.file_total_count = None
         self.at_all_list = None
@@ -72,13 +124,6 @@ class EmotionTaggingApp(QMainWindow):
         self.btnOpenFolder = QPushButton("Open _merging/yymmdd Folder", self)
         self.btnOpenFolder.clicked.connect(self.openFolder)
 
-        # self.emotionLabel = QLabel("Emotion:", self)
-        # self.emotionComboBox = QComboBox(self)
-        # self.emotionComboBox.addItems(["neutral", "surprise", "sadness", "happiness", "fear", "disgust", "angry"])
-        # 감정 라디오 버튼 생성
-        # self.commentLabel = QLabel("Comments:", self)
-        # self.commentTextEdit = QTextEdit(self)
-
         self.btnSave = QPushButton("Save Emotion Data", self)
         self.btnSave.clicked.connect(self.saveEmotionData)
 
@@ -88,25 +133,18 @@ class EmotionTaggingApp(QMainWindow):
         workerLayout = QHBoxLayout()
         layout.addLayout(workerLayout)
         
-        # 영상 재생 버튼 추가
         self.btnPlayVideo = QPushButton("Play Video", self)
         self.btnPlayVideo.clicked.connect(self.play_current_video)
         layout.addWidget(self.btnPlayVideo)
 
         self.emotionRadioButtons = {}
         self.emotionButtonGroup = QButtonGroup(self)
-        for code, emotion_info in emt.items():
+        for code, emotion_info in EMOTION_TAGS.items():
             radioButton = QRadioButton(emotion_info['eng'], self)
             self.emotionRadioButtons[emotion_info['eng']] = radioButton
             self.emotionButtonGroup.addButton(radioButton)
             layout.addWidget(radioButton)
-        # emotionLayout = QHBoxLayout()
-        # emotionLayout.addWidget(self.emotionLabel)
-        # emotionLayout.addWidget(self.emotionComboBox)
-        # layout.addLayout(emotionLayout)
 
-        # layout.addWidget(self.commentLabel)
-        # layout.addWidget(self.commentTextEdit)
         layout.addWidget(self.btnSave)
 
         container = QWidget(self)
@@ -117,6 +155,12 @@ class EmotionTaggingApp(QMainWindow):
             QTimer.singleShot(0, lambda: self.openFolder(self.yymmdd_folder_path))
 
     def openFolder(self, yymmdd_folder_path=None):
+        """
+        작업할 폴더를 엽니다.
+        
+        Args:
+            yymmdd_folder_path (str, optional): 폴더 경로. 기본값은 None.
+        """
         self.yymmdd_folder_path = yymmdd_folder_path or QFileDialog.getExistingDirectory(self, "Open yymmdd Folder")
 
         self.target_remain_video_list = []
@@ -136,10 +180,12 @@ class EmotionTaggingApp(QMainWindow):
         self.play_next_video()
 
     def play_current_video(self):
-        if self.process and self.process.poll() is not None:  # process가 종료된 상태라면
+        """현재 비디오를 재생합니다."""
+        if self.process and self.process.poll() is not None:
             self.process = subprocess.Popen([ffplay_path, self.video_path])
             
     def play_next_video(self):
+        """다음 비디오를 재생합니다."""
         self.process.terminate() if self.process else None
         subprocess.run(['cmd', '/c', 'cls'])
         if self.target_remain_video_list:
@@ -149,7 +195,6 @@ class EmotionTaggingApp(QMainWindow):
             print(self.video_path)
             print(os.path.basename(self.video_path))
             
-            # Set the window title to the video path
             self.setWindowTitle(f"Emotion Tagging App : {os.path.basename(os.path.dirname(self.video_path))}/{os.path.basename(self.video_path)}")
             
             self.process = subprocess.Popen([ffplay_path, self.video_path])
@@ -158,11 +203,12 @@ class EmotionTaggingApp(QMainWindow):
             print("All videos have been processed!")
 
     def saveEmotionData(self):
+        """선택된 감정 데이터를 저장합니다."""
         if not self.current_xml_file:
             subprocess.run(['cmd', '/c', 'cls'])
             print("No Opened folder.")
             return
-        # 선택된 라디오 버튼의 텍스트를 가져옴
+
         emotion = None
         current_index = 0
         for i, radioButton in enumerate(self.emotionRadioButtons.values(), 1):
@@ -176,13 +222,12 @@ class EmotionTaggingApp(QMainWindow):
             return
         priority = str(len(self.this_worker_did_this_file(self.current_xml_file)) + 1)
 
-        # XML 파일에 워커와 감정 정보를 추가하는 코드
         if hasattr(self, 'current_xml_file') and self.current_xml_file:
             emotion_data = {
                 '__text__': emotion,
                 'code': current_index,
                 'eng': emotion,
-                'kor': emt[current_index]['kor'],
+                'kor': EMOTION_TAGS[current_index]['kor'],
                 'worker': self.worker_code,
                 'priority': priority
             }
@@ -196,12 +241,17 @@ class EmotionTaggingApp(QMainWindow):
             self.play_next_video()
 
     def this_worker_did_this_file(self, xml_file_path):
+        """
+        현재 작업자가 해당 파일을 처리했는지 확인합니다.
+        
+        Args:
+            xml_file_path (str): XML 파일 경로
+            
+        Returns:
+            list: 작업자 코드 목록
+        """
         worker_codes = junLib.search_xml_by_attribute(xml_file_path, 'emotion', 'worker', self.worker_code)
         return worker_codes
-        # if worker_codes:
-        #     return True
-        # else:
-        #     return False
 
 def process_xml(xml_file_path, emotion_data):
     # converter = JsonToXmlConverter(emotion_data)

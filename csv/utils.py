@@ -1,8 +1,12 @@
+"""
+CSV 파일 처리를 위한 유틸리티 함수들
+"""
 import os
 import sys
 import pandas as pd
 import csv
-from . import junLib
+from .. import junLib
+from typing import List, Dict, Optional
 
 class CSVHelper:
     def __init__(self, worker_code=None, csv_file_path=None):
@@ -211,6 +215,143 @@ class CSVHelper:
         with open(csv_file, 'w', newline='', encoding='utf-8-sig') as file:
             csv_writer = csv.writer(file)
             csv_writer.writerows(rows)
+
+def read_csv_and_get_rows(csv_file: str) -> List[List[str]]:
+    """
+    CSV 파일을 읽어서 행들의 리스트를 반환합니다.
+    
+    Args:
+        csv_file (str): 읽을 CSV 파일의 경로
+        
+    Returns:
+        List[List[str]]: CSV 파일의 행들의 리스트
+    """
+    with open(csv_file, 'r', newline='', encoding='utf-8-sig') as file:
+        csv_reader = csv.reader(file)
+        rows = list(csv_reader)
+    return rows
+
+def write_rows(csv_file: str, rows: List[List[str]], encoding: str = "utf-8-sig") -> str:
+    """
+    행들의 리스트를 CSV 파일로 저장합니다.
+    
+    Args:
+        csv_file (str): 저장할 CSV 파일의 경로
+        rows (List[List[str]]): 저장할 행들의 리스트
+        encoding (str): 파일 인코딩
+        
+    Returns:
+        str: 저장된 파일의 경로
+    """
+    with open(csv_file, 'w', newline='', encoding=encoding) as file:
+        csv_writer = csv.writer(file)
+        csv_writer.writerows(rows)
+    return csv_file
+
+def find_column_index(csv_file: str, column_name: str) -> int:
+    """
+    CSV 파일에서 특정 열의 인덱스를 찾습니다.
+    
+    Args:
+        csv_file (str): CSV 파일의 경로
+        column_name (str): 찾을 열의 이름
+        
+    Returns:
+        int: 열의 인덱스 (1부터 시작), 찾지 못한 경우 -1
+    """
+    with open(csv_file, 'r', newline='', encoding='utf-8-sig') as file:
+        reader = csv.reader(file)
+        first_row = next(reader)
+        
+        for i, column in enumerate(first_row):
+            if column == column_name:
+                return i + 1
+    return -1
+
+def add_column_names(csv_file: str, name_row: List[str]) -> str:
+    """
+    CSV 파일에 열 이름을 추가합니다.
+    
+    Args:
+        csv_file (str): CSV 파일의 경로
+        name_row (List[str]): 추가할 열 이름들의 리스트
+        
+    Returns:
+        str: 수정된 파일의 경로
+    """
+    rows = read_csv_and_get_rows(csv_file)
+    rows[0] = name_row + rows[0]
+    return write_rows(csv_file, rows)
+
+def add_row_numbers(csv_file: str) -> str:
+    """
+    CSV 파일의 각 행에 번호를 추가합니다.
+    
+    Args:
+        csv_file (str): CSV 파일의 경로
+        
+    Returns:
+        str: 수정된 파일의 경로
+    """
+    rows = read_csv_and_get_rows(csv_file)
+    rows[0] = ['num'] + rows[0]
+    
+    for i in range(1, len(rows)):
+        rows[i] = [i] + rows[i]
+    
+    return write_rows(csv_file, rows)
+
+def dict_to_csv(output_csv: str, data_dict: Dict, key_header: str, value_header: str, 
+                input_csv: Optional[str] = None) -> None:
+    """
+    딕셔너리 데이터를 CSV 파일로 저장합니다.
+    
+    Args:
+        output_csv (str): 출력할 CSV 파일의 경로
+        data_dict (Dict): 저장할 데이터 딕셔너리
+        key_header (str): 키에 해당하는 열 이름
+        value_header (str): 값에 해당하는 열 이름
+        input_csv (str, optional): 기존 CSV 파일의 경로
+    """
+    rows = []
+    
+    if input_csv:
+        with open(input_csv, 'r', encoding='utf-8-sig') as file:
+            csv_reader = csv.DictReader(file)
+            for row in csv_reader:
+                if row[key_header] in data_dict:
+                    row[value_header] = data_dict[row[key_header]]
+                rows.append(row)
+    else:
+        for key, value in data_dict.items():
+            rows.append({key_header: key, value_header: value})
+    
+    with open(output_csv, 'w', encoding='utf-8-sig', newline='') as file:
+        csv_writer = csv.DictWriter(file, fieldnames=[key_header, value_header])
+        csv_writer.writeheader()
+        for row in rows:
+            csv_writer.writerow(row)
+
+def search_and_replace_content(csv_file: str, search_column: str, search_value: str, 
+                             replace_value: str) -> None:
+    """
+    CSV 파일에서 특정 값을 검색하여 다른 값으로 대체합니다.
+    
+    Args:
+        csv_file (str): CSV 파일의 경로
+        search_column (str): 검색할 열의 이름
+        search_value (str): 검색할 값
+        replace_value (str): 대체할 값
+    """
+    rows = read_csv_and_get_rows(csv_file)
+    header = rows[0]
+    search_index = header.index(search_column)
+    
+    for row in rows[1:]:
+        if row[search_index] == search_value:
+            row[search_index] = replace_value
+    
+    write_rows(csv_file, rows)
 
 if __name__ == "__main__":
     csv_helper = CSVHelper()

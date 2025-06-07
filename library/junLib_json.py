@@ -1,9 +1,7 @@
 import os
 import sys
-from __init__ import *
-sys.path.append(source_code_path)
-from _workplace.library.junLib import *
 import json
+from . import junLib
 
 def write_to_json(json_data:dict, json_file_path, formatting:bool=True, sort:bool=False):
     with open(json_file_path, 'w') as json_file:

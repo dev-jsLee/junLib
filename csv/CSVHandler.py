@@ -1,32 +1,180 @@
+"""
+CSV 파일 처리를 위한 핸들러 클래스
+"""
 import os
 import sys
 import csv
 import pandas as pd
 from . import junLib
+from typing import List, Dict, Union, Optional
 
-def convert_text_to_csv(text_file, csv_file=''):
-    with open(text_file, 'r', encoding='utf-8') as file:
-        lines = file.readlines()
+class CSVHandler:
+    """CSV 파일을 처리하기 위한 핸들러 클래스"""
+    
+    def __init__(self, file_path: Optional[str] = None):
+        """
+        CSVHandler 초기화
+        
+        Args:
+            file_path (str, optional): 처리할 CSV 파일의 경로
+        """
+        self.file_path = file_path
+        self.data = None
+        if file_path:
+            self.load(file_path)
+    
+    def load(self, file_path: str) -> None:
+        """
+        CSV 파일을 로드합니다.
+        
+        Args:
+            file_path (str): 로드할 CSV 파일의 경로
+        """
+        self.file_path = file_path
+        self.data = pd.read_csv(file_path, encoding='utf-8-sig')
+    
+    def save(self, file_path: Optional[str] = None, index: bool = False) -> str:
+        """
+        데이터를 CSV 파일로 저장합니다.
+        
+        Args:
+            file_path (str, optional): 저장할 파일 경로. None인 경우 현재 파일 경로 사용
+            index (bool): 인덱스를 저장할지 여부
+            
+        Returns:
+            str: 저장된 파일의 경로
+        """
+        if file_path is None:
+            file_path = self.file_path
+        self.data.to_csv(file_path, index=index, encoding='utf-8-sig')
+        return file_path
+    
+    def get_data(self) -> pd.DataFrame:
+        """
+        현재 로드된 데이터를 반환합니다.
+        
+        Returns:
+            pd.DataFrame: 현재 데이터
+        """
+        return self.data
+    
+    def set_data(self, data: pd.DataFrame) -> None:
+        """
+        데이터를 설정합니다.
+        
+        Args:
+            data (pd.DataFrame): 설정할 데이터
+        """
+        self.data = data
+    
+    def add_column(self, column_name: str, values: List = None, index: int = 0) -> None:
+        """
+        새로운 열을 추가합니다.
+        
+        Args:
+            column_name (str): 추가할 열의 이름
+            values (List, optional): 열에 추가할 값들의 리스트
+            index (int): 열을 추가할 위치
+        """
+        if values is None:
+            values = [None] * len(self.data)
+        self.data.insert(index, column_name, values)
+    
+    def remove_empty_rows(self) -> None:
+        """비어있는 행을 제거합니다."""
+        self.data = self.data.dropna(how='all')
+    
+    def search_value(self, search_column: str, search_value: Union[str, int, float], 
+                    target_column: str, value_type: str = 'str') -> Optional[str]:
+        """
+        특정 열에서 값을 검색하고 해당 행의 다른 열 값을 반환합니다.
+        
+        Args:
+            search_column (str): 검색할 열의 이름
+            search_value: 검색할 값
+            target_column (str): 반환할 열의 이름
+            value_type (str): 검색 값의 타입 ('str', 'int', 'float')
+            
+        Returns:
+            Optional[str]: 검색된 값이 있으면 해당 행의 target_column 값, 없으면 None
+        """
+        if value_type == 'float':
+            mask = self.data[search_column].astype(float) == float(search_value)
+        elif value_type == 'int':
+            mask = self.data[search_column].astype(int) == int(search_value)
+        else:
+            mask = self.data[search_column].astype(str) == str(search_value)
+        
+        result = self.data[mask][target_column]
+        return result.iloc[0] if not result.empty else None
+    
+    def to_dict(self, key_column: str, value_column: str) -> Dict:
+        """
+        데이터를 딕셔너리로 변환합니다.
+        
+        Args:
+            key_column (str): 키로 사용할 열의 이름
+            value_column (str): 값으로 사용할 열의 이름
+            
+        Returns:
+            Dict: 변환된 딕셔너리
+        """
+        return dict(zip(self.data[key_column], self.data[value_column]))
+    
+    def to_list(self) -> List[Dict]:
+        """
+        데이터를 리스트로 변환합니다.
+        
+        Returns:
+            List[Dict]: 변환된 리스트
+        """
+        return self.data.to_dict('records')
+    
+    @staticmethod
+    def convert_text_to_csv(text_file: str, csv_file: Optional[str] = None) -> str:
+        """
+        텍스트 파일을 CSV 파일로 변환합니다.
+        
+        Args:
+            text_file (str): 변환할 텍스트 파일의 경로
+            csv_file (str, optional): 저장할 CSV 파일의 경로
+            
+        Returns:
+            str: 저장된 CSV 파일의 경로
+        """
+        if not csv_file:
+            csv_file = junLib.change_extension(text_file, 'csv')
 
-    if not csv_file:
-        csv_file = junLib.change_extension(text_file, 'csv')
+        with open(text_file, 'r', encoding='utf-8') as file:
+            lines = file.readlines()
 
-    with open(csv_file, 'w', newline='', encoding='utf-8-sig') as file:
-        csv_writer = csv.writer(file)
-        for line in lines:
-            line = line.replace('\n','').replace('\n','')
-            cells = line.strip().split('\t')
-            if cells[0]:
-                csv_writer.writerow(cells)
-    return csv_file
+        with open(csv_file, 'w', newline='', encoding='utf-8-sig') as file:
+            csv_writer = csv.writer(file)
+            for line in lines:
+                line = line.replace('\n','').replace('\n','')
+                cells = line.strip().split('\t')
+                if cells[0]:
+                    csv_writer.writerow(cells)
+        return csv_file
+    
+    @staticmethod
+    def convert_csv_to_text(csv_file: str) -> str:
+        """
+        CSV 파일을 텍스트 파일로 변환합니다.
+        
+        Args:
+            csv_file (str): 변환할 CSV 파일의 경로
+            
+        Returns:
+            str: 저장된 텍스트 파일의 경로
+        """
+        txt_file = junLib.change_extension(csv_file, 'txt')
+        # CSV 파일 읽기
+        df = pd.read_csv(csv_file)
 
-def convert_csv_to_txt(csv_file):
-    txt_file = change_extension(csv_file, 'txt')
-    # CSV 파일 읽기
-    df = pd.read_csv(csv_file)
-
-    # 탭으로 구분된 텍스트 파일로 변환하여 출력
-    df.to_csv(txt_file, sep='\t', index=False)
+        # 탭으로 구분된 텍스트 파일로 변환하여 출력
+        df.to_csv(txt_file, sep='\t', index=False)
+        return txt_file
 
 def read_csv_and_get_rows(csv_file):
     with open(csv_file, 'r', newline='', encoding='utf-8-sig') as file:

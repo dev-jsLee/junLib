@@ -1,10 +1,12 @@
-# junLib_xml.py
+"""
+XML 파일 처리를 위한 핸들러 클래스
+"""
 import xml.etree.ElementTree as ET
 import xml
 import os
 import sys
 import codecs
-from . import junLib
+from .. import junLib
 
 def change_xml_encoding(input_file_path, output_file_path=None, new_encoding='utf-8'):
     # XML 파일을 원래의 인코딩으로 읽기
