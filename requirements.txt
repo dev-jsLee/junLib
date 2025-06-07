@@ -1,0 +1,7 @@
+# requirements.txt
+PyQt5
+moviepy
+pandas
+tqdm
+watchdog
+distro
