@@ -7,46 +7,7 @@ import shutil
 import re
 import subprocess
 from typing import Union, Optional, List, Dict, Any
-from .file_utils import (
-    path_exist, 
-    join_folder_path, 
-    move_file, 
-    move_file_to_current_other_folder, 
-    create_folder, 
-    file_name_folder_path, 
-    delete_file, 
-    get_txt_files_in_folder, 
-    get_files_in_folder_via_ext, 
-    remove_empty_folders, 
-    get_specific_sub_folder_path, 
-    get_specific_sub_folder_paths, 
-    get_startwith_sub_folder_path, 
-    move_files_to_subfolders, 
-    move_file_to_subfolders, 
-    get_matching_sub_folder_paths, 
-    move_folder_structure, 
-    is_empty_folder, 
-    get_files_path_in_folder_via_ext, 
-    get_files_path_in_folder_via_ext_yield, 
-    get_files_path_in_folder_via_startwith, 
-    get_files_path_in_folder_via_endswith, 
-    get_files_path_in_folder_via_contain, 
-    get_files_path_at_all, 
-    get_files, 
-    move_files_up_batch, 
-    move_files_up, 
-    read_lines, 
-    cut_after_dot, 
-    write_to_file, 
-    write_to_xmlfile, 
-    change_extension, 
-    add_suffix, 
-    get_suffix, 
-    change_underbar_suffix, 
-    remove_or_replace_last_underbar_suffix, 
-    except_ext_filename, 
-    split_filename, rename, rename_and_move_file, move_with_backup, copy_and_rename_folder, copy_and_rename_file, basename, parent_path, move_files_to_parent_folder, remove_empty_folders, sub_path_dict, has_subfolders, get_dir_sub_folder_path, get_dir_sub_folders, get_subdirectories, sub_path, get_sub_folder_path, bro_folder_path, move_folder, delete_folders_by_name, create_folders, get_files_info, get_size_in_kb, get_size_in_mb, seconds_to_hms, seconds_to_ms
-)
+from .file_utils import *
 
 # moviepy 직접 임포트
 try:
@@ -60,7 +21,6 @@ except ImportError:
 def clear() -> None:
     """화면을 지웁니다."""
     subprocess.run(['cmd', '/c', 'cls'])
-    
 
 def convert_to_korean_numbers(number: Union[int, str]) -> str:
     """
@@ -142,7 +102,6 @@ def is_convertible_to_number(s, target='int', return_value:bool=False):
         except ValueError:  # 변환 실패 시
             return False
 
-
 def stqinput(variable=None, string='folder path'):
     if not variable:
         return strip_quotes(input(f'Enter {string} : '))
@@ -191,113 +150,9 @@ def strip_quotes(text: Union[str, Any]) -> str:
         return str(text).strip('"')
     return str(text)
 
-
 def split_str(string_split_by, split_code='\t'):
     result = str(string_split_by).split(str(split_code))
     return result
-
-def move_file(need_to_move_file_path, target_path, show_msg=False):
-    """ 
-    1. target_path is file path or folder path.
-    2. file path -> just do
-    3. folder path -> basename of need_to_move_file_path is target_file_name
-    """
-    if os.path.isfile(target_path):
-        if not path_exist(os.path.dirname(target_path)):create_folder(os.path.dirname(target_path))
-    elif os.path.isdir(target_path):
-        if not path_exist(target_path):create_folder(target_path)
-        target_path = join_folder_path(target_path, os.path.basename(need_to_move_file_path))
-    if show_msg:print("\n", need_to_move_file_path, ' ->\n', target_path)
-    try:
-        shutil.move(need_to_move_file_path, target_path)
-        if show_msg:print("파일을 이동했습니다.")
-    except FileNotFoundError:
-        print("파일을 찾을 수 없습니다.")
-    except PermissionError:
-        print("파일 이동 권한이 없습니다.")
-    except Exception as e:
-        print("파일 이동 중 오류가 발생했습니다:", str(e))
-
-def lift_folders(base_path):
-    # 입력받은 폴더 내의 모든 하위 폴더를 가져옵니다.
-    subfolders = [f.path for f in os.scandir(base_path) if f.is_dir()]
-
-    for subfolder in subfolders:
-        print("process ", os.path.basename(subfolder))
-        # 각 하위 폴더 내의 폴더들을 가져옵니다.
-        inner_subfolders = [f.path for f in os.scandir(subfolder) if f.is_dir()]
-
-        for inner_subfolder in inner_subfolders:
-            # 하위 폴더의 이름을 가져옵니다.
-            inner_subfolder_name = os.path.basename(inner_subfolder)
-            # 새로운 경로를 생성합니다.
-            new_path = os.path.join(base_path, inner_subfolder_name)
-
-            # 해당 폴더가 이미 존재하는지 확인하고, 없으면 폴더를 생성합니다.
-            if not os.path.exists(new_path):
-                os.makedirs(new_path)
-                print(new_path)
-
-            # 파일들을 새로운 폴더로 옮깁니다.
-            for item in os.listdir(inner_subfolder):
-                s = os.path.join(inner_subfolder, item)
-                d = os.path.join(new_path, item)
-                if os.path.isdir(s):
-                    shutil.copytree(s, d, dirs_exist_ok=True)
-                else:
-                    shutil.copy2(s, d)
-
-            # 옮긴 후 원래의 폴더를 삭제합니다.
-            shutil.rmtree(inner_subfolder)
-
-        # 모든 파일을 옮긴 후 상위 폴더도 삭제합니다.
-        os.rmdir(subfolder)
-
-def open_folder_path(folder_path):
-    import sys
-    if sys.platform == 'win32':
-        # subprocess.run(['explorer', os.path.abspath(folder_path)])
-        os.startfile(folder_path)
-    elif sys.platform == 'darwin':  # macOS
-        subprocess.run(['open', folder_path])
-    else:  # Linux 및 기타 유닉스 시스템
-        subprocess.run(['xdg-open', folder_path])
-
-def move_file_to_current_other_folder(need_to_move_file_path, folder_name='backup', overwrite:bool=False, show_msg:bool=True, show_err:bool=True) -> str:
-    target_folder = join_folder_path(os.path.dirname(need_to_move_file_path), folder_name)
-    if not path_exist(target_folder): create_folder(target_folder)
-    target_path = join_folder_path(target_folder, os.path.basename(need_to_move_file_path))
-    try:
-        if overwrite:
-            if path_exist(target_path):
-                if path_exist(rename(target_path, suffix='_back')):
-                    delete_file(rename(target_path, suffix='_back'))
-                else:
-                    rename_and_move_file(target_path, rename(target_path, suffix='_back'))
-        shutil.move(need_to_move_file_path, target_path)
-        if show_msg: print(f"{need_to_move_file_path} to {target_path} 파일을 이동했습니다.")
-    except FileNotFoundError:
-        if show_err: print("파일을 찾을 수 없습니다.")
-    except PermissionError:
-        if show_err: print("파일 이동 권한이 없습니다.")
-    except Exception as e:
-        if show_err: print("파일 이동 중 오류가 발생했습니다:", str(e))
-    finally:
-        return target_path
-
-def create_folder(folder_path, show_msg:bool=True):
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-        if show_msg: print(f"폴더를 생성했습니다: {folder_path}")
-    else:
-        if show_msg: print(f"폴더가 이미 존재합니다: {folder_path}")
-    return folder_path
-def file_name_folder_path(file_path):
-    return join_folder_path(os.path.dirname(file_path), os.path.splitext(os.path.basename(file_path))[0])
-
-
-# def move_backup(folder_path, file_name):
-#     file_path = os.path.join(folder_path, file_name)
 
 def remove_extra_tabs(text:str):
     lines = text.split('\n')
@@ -328,11 +183,6 @@ def delete_file(file_path:str, show_msg:bool=True):
     except Exception as e:
         print(e)
 
-# if __name__ == "__main__":
-#     folder_path = '/경로/폴더'  # 실제 폴더 경로로 대체해야 합니다.
-#     file_name = 'example.txt'  # 실제 파일명으로 대체해야 합니다.
-#     delete_file(folder_path, file_name)
-
 def get_txt_files_in_folder(folder_path):
     txt_files = []
     for file_name in os.listdir(folder_path):
@@ -346,7 +196,6 @@ def get_files_in_folder_via_ext(folder_path, extension='txt'):
         if file_name.endswith('.'+extension):
             target_files.append(file_name)
     return target_files
-
 
 def remove_empty_folders(folder_path): # type: ignore
     # 폴더 내의 모든 파일과 폴더를 가져옵니다.
@@ -380,7 +229,6 @@ def get_specific_sub_folder_paths(folder_path, target_folder_name, recursive=Fal
             if directory == target_folder_name:
                 result_paths.append(os.path.join(root, directory))
     return result_paths
-
 
 def get_startwith_sub_folder_path(folder_path, contained_folder_name):
     for root, dirs, files in os.walk(folder_path):
@@ -501,7 +349,6 @@ def get_files_path_in_folder_via_ext_yield(folder_path, extension='txt', recursi
         # 재귀적으로 탐색 옵션이 활성화되고, 현재 경로가 폴더면 함수를 재귀적으로 호출
         elif recursive and os.path.isdir(full_path):
             yield from get_files_path_in_folder_via_ext_yield(full_path, extension, recursive, show_msg)
-
 
 def get_files_path_in_folder_via_startwith(folder_path, startwith:str, extension:str=None, contain_origin:bool=True, recursive=False): # type: ignore
     target_files = []
@@ -629,10 +476,6 @@ def get_files(folder_path, target='text'):
         print(f"{folder_path} 경로에서 총 {len(result_files)}개의 파일을 찾았습니다.")
     return result_files
 
-# def move_files_up_batch(folder_path):
-#     batch_process = subprocess.Popen(move_up_batch_file_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-#     batch_process.communicate(input=folder_path + '\n')
-
 def move_files_up(folder_path):
     # 입력받은 폴더 경로 내의 모든 파일과 하위 폴더를 탐색
     for root, dirs, files in os.walk(folder_path):
@@ -654,26 +497,6 @@ def remove_empty_folders(parent_folder_path=''): # type: ignore
     parent_folder_path = strip_quotes(input('Enter folder path : '))  if not parent_folder_path else parent_folder_path
     target_folder_path = get_sub_folder_path(parent_folder_path)
     
-# 특정 폴더 경로를 입력합니다.
-# folder_path = input("폴더 경로를 입력하세요: ")
-
-
-# 파일 경로를 가져옵니다.
-# files = get_files(folder_path, target)
-
-# # 결과 출력
-# print(f"{target.capitalize()} 파일 목록:")
-# for file in files:
-#     print(file)
-
-# ===============
-
-# def read_line_list_from_lines(text_file):
-#     pass
-# if __name__ == "__main__":
-#     folder_path = '/path/to/your/folder'  # 실제 폴더 경로로 변경해주세요
-#     txt_files_list = get_txt_files_in_folder(folder_path)
-#     print(txt_files_list)
 def read_lines(text_file):
     lines = []
     with open(text_file, 'r', encoding='utf-8') as file:
@@ -686,8 +509,6 @@ def cut_after_dot(float_number, length_after_dot=2):
     split_number = split_str(str(float_number),'.')
     print(split_number)
     return (split_number[0] + '.' + split_number[1][:length_after_dot]) if len(split_number)>1 else float_number
-
-
 
 def write_to_file(filename, value:str='', mode:str='w'):
     with open(filename, mode, encoding='utf-8') as file:
@@ -898,7 +719,6 @@ def copy_and_rename_file(source_path, destination_path, overwrite=True, show_msg
         else:
             shutil.copy(source_path, destination_path)
 
-
 def basename(file_path):
     base_name = os.path.basename(file_path)
     return base_name
@@ -1010,6 +830,7 @@ def get_sub_folder_path(folder_path):
         for directory in dirs:
             sub_folder_paths.append(os.path.join(root, directory))
     return sub_folder_paths
+
 def bro_folder_path(folder_path, bro_name:str):
     return join_folder_path(os.path.dirname(folder_path), bro_name)
 
@@ -1064,12 +885,6 @@ def get_files_info(folder_path, extension='jpg'):
         file_size += os.path.getsize(file)
     return file_count, file_size
 
-def get_size_in_kb(size_in_bytes):
-    return size_in_bytes / 1024
-
-def get_size_in_mb(size_in_bytes):
-    return size_in_bytes / (1024 * 1024)
-
 def seconds_to_hms(seconds: Union[int, float]) -> str:
     """
     초를 HH:MM:SS 형식으로 변환합니다.
@@ -1100,7 +915,6 @@ def seconds_to_ms(seconds: Union[int, float]) -> str:
     return f"{minutes:02d}:{seconds:02d}"
 
 class path_func():
-
     def __init__(self, file_path) -> None:
         self.file_path = file_path
         self.basename = os.path.basename(file_path)
@@ -1108,15 +922,6 @@ class path_func():
         self.ext = os.path.splitext(os.path.basename(file_path))[1]
         self.file_name = os.path.splitext(os.path.basename(file_path))[0]
 
-    def get_basename(self):
-        return self.basename
-
-    def get_parent(self):
-        return self.parent_path
-
-    def get_ext(self):
-        return self.ext
-    
     def rename(self, prefix="", suffix="", ext=""):
         file_name_final = prefix + self.file_name + suffix + '.' + (self.ext if not ext else ext)
         final_path = os.path.join(self.parent_path, file_name_final)

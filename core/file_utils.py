@@ -7,6 +7,107 @@ import subprocess
 from typing import Union, Optional, List, Dict, Any
 
 # junLib의 함수들을 직접 사용
+
+def move_file(need_to_move_file_path, target_path, show_msg=False):
+    """ 
+    1. target_path is file path or folder path.
+    2. file path -> just do
+    3. folder path -> basename of need_to_move_file_path is target_file_name
+    """
+    if os.path.isfile(target_path):
+        if not path_exist(os.path.dirname(target_path)):create_folder(os.path.dirname(target_path))
+    elif os.path.isdir(target_path):
+        if not path_exist(target_path):create_folder(target_path)
+        target_path = join_folder_path(target_path, os.path.basename(need_to_move_file_path))
+    if show_msg:print("\n", need_to_move_file_path, ' ->\n', target_path)
+    try:
+        shutil.move(need_to_move_file_path, target_path)
+        if show_msg:print("파일을 이동했습니다.")
+    except FileNotFoundError:
+        print("파일을 찾을 수 없습니다.")
+    except PermissionError:
+        print("파일 이동 권한이 없습니다.")
+    except Exception as e:
+        print("파일 이동 중 오류가 발생했습니다:", str(e))
+
+def lift_folders(base_path):
+    # 입력받은 폴더 내의 모든 하위 폴더를 가져옵니다.
+    subfolders = [f.path for f in os.scandir(base_path) if f.is_dir()]
+
+    for subfolder in subfolders:
+        print("process ", os.path.basename(subfolder))
+        # 각 하위 폴더 내의 폴더들을 가져옵니다.
+        inner_subfolders = [f.path for f in os.scandir(subfolder) if f.is_dir()]
+
+        for inner_subfolder in inner_subfolders:
+            # 하위 폴더의 이름을 가져옵니다.
+            inner_subfolder_name = os.path.basename(inner_subfolder)
+            # 새로운 경로를 생성합니다.
+            new_path = os.path.join(base_path, inner_subfolder_name)
+
+            # 해당 폴더가 이미 존재하는지 확인하고, 없으면 폴더를 생성합니다.
+            if not os.path.exists(new_path):
+                os.makedirs(new_path)
+                print(new_path)
+
+            # 파일들을 새로운 폴더로 옮깁니다.
+            for item in os.listdir(inner_subfolder):
+                s = os.path.join(inner_subfolder, item)
+                d = os.path.join(new_path, item)
+                if os.path.isdir(s):
+                    shutil.copytree(s, d, dirs_exist_ok=True)
+                else:
+                    shutil.copy2(s, d)
+
+            # 옮긴 후 원래의 폴더를 삭제합니다.
+            shutil.rmtree(inner_subfolder)
+
+        # 모든 파일을 옮긴 후 상위 폴더도 삭제합니다.
+        os.rmdir(subfolder)
+
+def open_folder_path(folder_path):
+    import sys
+    if sys.platform == 'win32':
+        # subprocess.run(['explorer', os.path.abspath(folder_path)])
+        os.startfile(folder_path)
+    elif sys.platform == 'darwin':  # macOS
+        subprocess.run(['open', folder_path])
+    else:  # Linux 및 기타 유닉스 시스템
+        subprocess.run(['xdg-open', folder_path])
+
+def move_file_to_current_other_folder(need_to_move_file_path, folder_name='backup', overwrite:bool=False, show_msg:bool=True, show_err:bool=True) -> str:
+    target_folder = join_folder_path(os.path.dirname(need_to_move_file_path), folder_name)
+    if not path_exist(target_folder): create_folder(target_folder)
+    target_path = join_folder_path(target_folder, os.path.basename(need_to_move_file_path))
+    try:
+        if overwrite:
+            if path_exist(target_path):
+                if path_exist(rename(target_path, suffix='_back')):
+                    delete_file(rename(target_path, suffix='_back'))
+                else:
+                    rename_and_move_file(target_path, rename(target_path, suffix='_back'))
+        shutil.move(need_to_move_file_path, target_path)
+        if show_msg: print(f"{need_to_move_file_path} to {target_path} 파일을 이동했습니다.")
+    except FileNotFoundError:
+        if show_err: print("파일을 찾을 수 없습니다.")
+    except PermissionError:
+        if show_err: print("파일 이동 권한이 없습니다.")
+    except Exception as e:
+        if show_err: print("파일 이동 중 오류가 발생했습니다:", str(e))
+    finally:
+        return target_path
+
+def create_folder(folder_path, show_msg:bool=True):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+        if show_msg: print(f"폴더를 생성했습니다: {folder_path}")
+    else:
+        if show_msg: print(f"폴더가 이미 존재합니다: {folder_path}")
+    return folder_path
+
+def file_name_folder_path(file_path):
+    return join_folder_path(os.path.dirname(file_path), os.path.splitext(os.path.basename(file_path))[0])
+
 def rename_folder(old_folder_path: str, new_name: str) -> None:
     """
     폴더의 이름을 변경합니다.
