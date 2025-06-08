@@ -22,7 +22,7 @@ from .XMLHandler import (
 )
 
 from .XMLValidator import XMLController, XMLMaker
-from .utils import (
+from .xml_utils import (
     write_xsd_to_file,
     generate_xsd_from_xml_file,
     generate_xsd_from_xml_string,

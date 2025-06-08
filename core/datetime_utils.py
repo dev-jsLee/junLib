@@ -1,3 +1,6 @@
+"""
+날짜와 시간 처리를 위한 유틸리티 함수들
+"""
 import datetime
 
 class DateTimer:
@@ -65,4 +68,4 @@ if __name__ == "__main__":
     print("특정 날짜:", custom_date)
 
     custom_time = datetime_utility.create_custom_time(14, 30, 0)
-    print("특정 시간:", custom_time)
+    print("특정 시간:", custom_time) 

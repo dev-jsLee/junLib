@@ -4,11 +4,11 @@
 import os
 import sys
 import csv
-from .. import junLib
+from . import junLib
 
 # moviepy 임포트
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy import VideoFileClip, AudioFileClip
 
 class VideoHandler:
     """비디오 파일을 처리하기 위한 핸들러 클래스"""

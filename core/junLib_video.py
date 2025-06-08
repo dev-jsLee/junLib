@@ -1,11 +1,11 @@
 import os
 import sys
 import csv
-from . import junLib
+from junLib import strip_quotes
 
 # moviepy 임포트
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
-from moviepy.editor import VideoFileClip, AudioFileClip
+from moviepy import VideoFileClip, AudioFileClip
 
 class video_lib():
     
@@ -15,7 +15,7 @@ class video_lib():
         pass
 
     def set_video(self, video_path=''):
-        self.video_path = video_path or junLib.strip_quotes(input("Enter video file path : "))
+        self.video_path = video_path or strip_quotes(input("Enter video file path : "))
         return self
 
     def get_duration(self):
@@ -50,7 +50,7 @@ class audio_lib():
             self.set_audio(audio_path)
 
     def set_audio(self, video_path=''):
-        self.audio_path = video_path or junLib.strip_quotes(input("Enter video file path : "))
+        self.audio_path = video_path or strip_quotes(input("Enter video file path : "))
         return self
 
     def get_duration(self):
@@ -61,6 +61,6 @@ class audio_lib():
 
 if __name__ == "__main__":
     obj = video_lib()
-    video_file_path = junLib.strip_quotes(input("Enter video file path : "))
+    video_file_path = strip_quotes(input("Enter video file path : "))
     obj.set_video(video_file_path)
     print(obj.get_duration())

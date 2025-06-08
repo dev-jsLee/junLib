@@ -1,9 +1,52 @@
-# junsCommon.py
+"""
+공통 유틸리티 함수들을 제공하는 모듈
+"""
 import os
 import sys
 import shutil
 import re
 import subprocess
+from typing import Union, Optional, List, Dict, Any
+from .file_utils import (
+    path_exist, 
+    join_folder_path, 
+    move_file, 
+    move_file_to_current_other_folder, 
+    create_folder, 
+    file_name_folder_path, 
+    delete_file, 
+    get_txt_files_in_folder, 
+    get_files_in_folder_via_ext, 
+    remove_empty_folders, 
+    get_specific_sub_folder_path, 
+    get_specific_sub_folder_paths, 
+    get_startwith_sub_folder_path, 
+    move_files_to_subfolders, 
+    move_file_to_subfolders, 
+    get_matching_sub_folder_paths, 
+    move_folder_structure, 
+    is_empty_folder, 
+    get_files_path_in_folder_via_ext, 
+    get_files_path_in_folder_via_ext_yield, 
+    get_files_path_in_folder_via_startwith, 
+    get_files_path_in_folder_via_endswith, 
+    get_files_path_in_folder_via_contain, 
+    get_files_path_at_all, 
+    get_files, 
+    move_files_up_batch, 
+    move_files_up, 
+    read_lines, 
+    cut_after_dot, 
+    write_to_file, 
+    write_to_xmlfile, 
+    change_extension, 
+    add_suffix, 
+    get_suffix, 
+    change_underbar_suffix, 
+    remove_or_replace_last_underbar_suffix, 
+    except_ext_filename, 
+    split_filename, rename, rename_and_move_file, move_with_backup, copy_and_rename_folder, copy_and_rename_file, basename, parent_path, move_files_to_parent_folder, remove_empty_folders, sub_path_dict, has_subfolders, get_dir_sub_folder_path, get_dir_sub_folders, get_subdirectories, sub_path, get_sub_folder_path, bro_folder_path, move_folder, delete_folders_by_name, create_folders, get_files_info, get_size_in_kb, get_size_in_mb, seconds_to_hms, seconds_to_ms
+)
 
 # moviepy 직접 임포트
 try:
@@ -12,26 +55,23 @@ except ImportError:
     print("moviepy 패키지가 설치되어 있지 않습니다. pip install moviepy로 설치해주세요.")
 
 # 배치 파일 경로 설정
-move_up_batch_file_path = os.path.join(os.path.dirname(__file__), 'util', 'files_move', 'moveUp.bat')
+# move_up_batch_file_path = os.path.join(os.path.dirname(__file__), 'util', 'files_move', 'moveUp.bat')
 
-def clear():
+def clear() -> None:
+    """화면을 지웁니다."""
     subprocess.run(['cmd', '/c', 'cls'])
     
-def rename_folder(old_folder_path, new_name:str):
-    """
-    폴더의 이름을 변경하는 함수
 
-    :param old_name: 변경하려는 폴더의 현재 이름 (경로 포함)
-    :param new_name: 폴더에 부여하려는 새 이름(경로 미포함)
+def convert_to_korean_numbers(number: Union[int, str]) -> str:
     """
-    new_folder_path = join_folder_path(os.path.dirname(old_folder_path), new_name)
-    try:
-        os.rename(old_folder_path, new_folder_path)
-        print(f"'{old_folder_path}' has been renamed to '{new_folder_path}'")
-    except Exception as e:
-        print(f"Error renaming folder: {e}")
-
-def convert_to_korean_numbers(number:int|str):
+    숫자를 한글 숫자로 변환합니다.
+    
+    Args:
+        number (Union[int, str]): 변환할 숫자
+        
+    Returns:
+        str: 한글 숫자로 변환된 문자열
+    """
     korean_numbers = ['영', '일', '이', '삼', '사', '오', '육', '칠', '팔', '구']
     korean_units = ['', '십', '백', '천']
 
@@ -56,7 +96,15 @@ def convert_to_korean_numbers(number:int|str):
     korean_number_str = korean_number_str.replace('일십', '십').replace('일백', '백').replace('일천', '천').replace('일만', '만')
     return korean_number_str
 
-def change_encoding(file_path, old_encoding:str, new_encoding:str):
+def change_encoding(file_path: str, old_encoding: str, new_encoding: str) -> None:
+    """
+    파일의 인코딩을 변경합니다.
+    
+    Args:
+        file_path (str): 인코딩을 변경할 파일 경로
+        old_encoding (str): 현재 인코딩
+        new_encoding (str): 변경할 인코딩
+    """
     # 기존 파일 열기
     with open(file_path, 'r', encoding=old_encoding) as old_file:
         # 내용 읽어오기
@@ -67,7 +115,17 @@ def change_encoding(file_path, old_encoding:str, new_encoding:str):
         # 내용 쓰기
         new_file.write(content)
 
-def ifinput(variable='', string='folder path'):
+def ifinput(variable: str = '', string: str = 'folder path') -> str:
+    """
+    변수가 비어있으면 입력을 받고, 아니면 변수를 반환합니다.
+    
+    Args:
+        variable (str): 기본값
+        string (str): 입력 프롬프트
+        
+    Returns:
+        str: 입력받은 값 또는 기본값
+    """
     return variable if variable else strip_quotes(input(string))
 
 def is_convertible_to_number(s, target='int', return_value:bool=False):
@@ -101,7 +159,16 @@ def save_to_audacity_label(segments, output_file):
                 word_text = str(wordinfo['word']).strip()
                 f.write(f"{start_time}\t{end_time}\t{word_text}\n")
 
-def format_time(total_seconds):
+def format_time(total_seconds: Union[int, float]) -> str:
+    """
+    초를 HH:MM:SS,mmm 형식으로 변환합니다.
+    
+    Args:
+        total_seconds (Union[int, float]): 변환할 초
+        
+    Returns:
+        str: HH:MM:SS,mmm 형식의 문자열
+    """
     print(f"seconds: {total_seconds}")
     total_seconds = float(total_seconds)
     hours = int(total_seconds // 3600)
@@ -110,13 +177,20 @@ def format_time(total_seconds):
     milliseconds = int((seconds - int(seconds)) * 1000)
     return "{:02d}:{:02d}:{:02d},{:03d}".format(hours, minutes, int(seconds), milliseconds)
 
-def strip_quotes(text):
+def strip_quotes(text: Union[str, Any]) -> str:
+    """
+    문자열의 따옴표를 제거합니다.
+    
+    Args:
+        text (Union[str, Any]): 처리할 문자열
+        
+    Returns:
+        str: 따옴표가 제거된 문자열
+    """
     if str(text).startswith('"') and str(text).endswith('"'):
         return str(text).strip('"')
     return str(text)
 
-def path_exist(file_path):
-    return os.path.exists(file_path)
 
 def split_str(string_split_by, split_code='\t'):
     result = str(string_split_by).split(str(split_code))
@@ -221,9 +295,6 @@ def create_folder(folder_path, show_msg:bool=True):
 def file_name_folder_path(file_path):
     return join_folder_path(os.path.dirname(file_path), os.path.splitext(os.path.basename(file_path))[0])
 
-def join_folder_path(*args):
-    path = str(os.path.join(*args))
-    return path
 
 # def move_backup(folder_path, file_name):
 #     file_path = os.path.join(folder_path, file_name)
@@ -558,9 +629,9 @@ def get_files(folder_path, target='text'):
         print(f"{folder_path} 경로에서 총 {len(result_files)}개의 파일을 찾았습니다.")
     return result_files
 
-def move_files_up_batch(folder_path):
-    batch_process = subprocess.Popen(move_up_batch_file_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    batch_process.communicate(input=folder_path + '\n')
+# def move_files_up_batch(folder_path):
+#     batch_process = subprocess.Popen(move_up_batch_file_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     batch_process.communicate(input=folder_path + '\n')
 
 def move_files_up(folder_path):
     # 입력받은 폴더 경로 내의 모든 파일과 하위 폴더를 탐색
@@ -999,32 +1070,34 @@ def get_size_in_kb(size_in_bytes):
 def get_size_in_mb(size_in_bytes):
     return size_in_bytes / (1024 * 1024)
 
-def seconds_to_hms(seconds:int|float):
-    h = int(seconds // 3600)
-    m = int((seconds % 3600) // 60)
-    s = int(seconds % 60)
-    return f"{h:02d}:{m:02d}:{s:02d}"
-def seconds_to_ms(seconds:int|float):
-    m = int(seconds // 60)
-    s = int(seconds % 60)
-    return f"{m:02d}:{s:02d}"
-    # for root, dirs, files in os.walk(folder_path):
-    #     for file in files:
-    #         file_path = os.path.join(root, file)
-    #         file_extension = os.path.splitext(file)[1].lower()
+def seconds_to_hms(seconds: Union[int, float]) -> str:
+    """
+    초를 HH:MM:SS 형식으로 변환합니다.
+    
+    Args:
+        seconds (Union[int, float]): 변환할 초
+        
+    Returns:
+        str: HH:MM:SS 형식의 문자열
+    """
+    hours = int(seconds // 3600)
+    minutes = int((seconds % 3600) // 60)
+    seconds = int(seconds % 60)
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
-    #         if file_extension == ".mp4":
-    #             mp4_count += 1
-    #             file_size = os.path.getsize(file_path)
-    #             mp4_size += file_size
-    #             try:
-    #                 clip = VideoFileClip(file_path)
-    #                 mp4_length += clip.duration
-    #                 clip.close()
-    #             except Exception:
-    #                 pass
-
-    # return mp4_count, mp4_size, mp4_length
+def seconds_to_ms(seconds: Union[int, float]) -> str:
+    """
+    초를 MM:SS 형식으로 변환합니다.
+    
+    Args:
+        seconds (Union[int, float]): 변환할 초
+        
+    Returns:
+        str: MM:SS 형식의 문자열
+    """
+    minutes = int(seconds // 60)
+    seconds = int(seconds % 60)
+    return f"{minutes:02d}:{seconds:02d}"
 
 class path_func():
 

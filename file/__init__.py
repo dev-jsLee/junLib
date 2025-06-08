@@ -4,7 +4,7 @@
 이 모듈은 파일과 폴더를 처리하기 위한 클래스와 유틸리티 함수들을 제공합니다.
 """
 
-from .FileHandler import (
+from ..file_utils import (
     FileHandler,
     clear,
     strip_quotes,
