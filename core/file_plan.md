@@ -9,11 +9,40 @@ core/
 ├── utils/
 │   ├── __init__.py
 │   ├── file_utils.py      # 파일 기본 작업
+│   │   - move_file()
+│   │   - copy_file()
+│   │   - delete_file()
+│   │   - rename_file()
+│   │
 │   ├── folder_utils.py    # 폴더 관련 작업
+│   │   - create_folder()
+│   │   - remove_empty_folders()
+│   │   - move_folder_structure()
+│   │   - is_empty_folder()
+│   │
 │   ├── path_utils.py      # 경로 관련 작업
+│   │   - join_folder_path()
+│   │   - basename()
+│   │   - parent_path()
+│   │   - split_filename()
+│   │   - path_exist()
+│   │
 │   ├── io_utils.py        # 파일 입출력 작업
+│   │   - read_lines()
+│   │   - write_to_file()
+│   │   - write_to_xmlfile()
+│   │
 │   ├── search_utils.py    # 검색 관련 작업
+│   │   - get_files_path_in_folder_via_ext()
+│   │   - get_files_path_via_startwith()
+│   │   - find_files_with_extension()
+│   │   - get_matching_sub_folder_paths()
+│   │
 │   └── text_utils.py      # 텍스트 처리 작업
+│       - convert_to_korean_numbers()
+│       - change_encoding()
+│       - format_time()
+│       - strip_quotes()
 ```
 
 ## 2. 각 모듈별 주요 함수 분배
